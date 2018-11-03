@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.sparkpost</groupId>
 		<artifactId>apps</artifactId>
-		<version>0.16.1</version>
+		<version>0.21</version>
 	</parent>
 	<artifactId>sparkpost-documentor-app</artifactId>
 	<name>Generates Markdown of Protocol</name>
@@ -65,6 +65,17 @@
 			<artifactId>reflections</artifactId>
 			<version>0.9.10</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<!-- <version>2.4</version> -->
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20160810</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

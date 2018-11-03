@@ -1,6 +1,6 @@
 <a href="https://www.sparkpost.com"><img src="https://www.sparkpost.com/sites/default/files/attachments/SparkPost_Logo_2-Color_Gray-Orange_RGB.svg" width="200px"/></a>
 
-[Sign up](https://app.sparkpost.com/sign-up?src=Dev-Website&sfdcid=70160000000pqBb) for a SparkPost account and visit our [Developer Hub](https://developers.sparkpost.com) for even more content.
+[Sign up](https://app.sparkpost.com/join?plan=free-0817?src=Social%20Media&sfdcid=70160000000pqBb&pc=GitHubSignUp&utm_source=github&utm_medium=social-media&utm_campaign=github&utm_content=sign-up) for a SparkPost account and visit our [Developer Hub](https://developers.sparkpost.com) for even more content.
 
 # SparkPost Java Library
 
@@ -10,20 +10,24 @@ Use this library in Java applications to easily access the SparkPost Email API i
 
 ## Version Compatibility Note
 
+### Version 0.6.2 -> 0.6.3
+
+Due to [issue 57](https://github.com/SparkPost/java-sparkpost/issues/57) and to maintain compatibility with old and new version of Apache HTTP Client `SPARKPOST_BASE_URL` must not end with a `/` slash.
+
 ### Version 0.12 -> 0.13
 
 Although we try to maintain library backward compatibility this migration may require some minor changes to your code. Substitution data was changed from `Map<String, String>` to `Map<String, Object>`. Most client code will just need to change their map to this new signature.
 
 ## Getting Started
 
-The SparkPost Java Library is available in this [Maven Repository](http://maven.apache.org/download.cgi):
+The SparkPost Java Library is available in this [Maven Repository](https://repo.maven.apache.org/maven2/com/sparkpost/sparkpost-lib) or in GitHub [Releases](https://github.com/SparkPost/java-sparkpost/releases).
 
 
 ```xml
 <dependency>
 	<groupId>com.sparkpost</groupId>
 	<artifactId>sparkpost-lib</artifactId>
-	<version>0.16.1</version>
+	<version>0.21</version>
 </dependency>
 ```
 
@@ -42,6 +46,36 @@ public class SparkPost {
     public static void main(String[] args) throws SparkPostException {
         String API_KEY = "YOUR API KEY HERE!!!";
         Client client = new Client(API_KEY);
+
+        client.sendMessage(
+                "you@yourdomain.com",
+                "to@sparkpost.com",
+                "The subject of the message",
+                "The text part of the email",
+                "<b>The HTML part of the email</b>");
+
+    }
+}
+
+```
+
+## Basic Send Email through SparkPost EU 
+
+```java
+
+
+package com.sparkpost;
+
+import com.sparkpost.exception.SparkPostException;
+import com.sparkpost.transport.IRestConnection;
+
+public class SparkPost {
+
+    public static void main(String[] args) throws SparkPostException {
+        String API_KEY = "YOUR API KEY HERE!!!";
+
+        // To use the SparkPost EU use the IRestConnection.SPC_EU_ENDPOINT endpoint
+        Client client = new Client(API_KEY, IRestConnection.SPC_EU_ENDPOINT);
 
         client.sendMessage(
                 "you@yourdomain.com",
@@ -96,3 +130,23 @@ private void sendEmail(String from, String[] recipients, String email) throws Sp
 }
 
 ```
+
+## Running The Sample Apps
+
+The sample apps are held in `apps/sparkpost-samples-app` with each sample's source code in `apps/sparkpost-samples-app/src/main/java/com/sparkpost/samples/`.
+
+To build the samples:
+
+```bash
+cd apps/sparkpost-samples-app
+mvn compile
+```
+
+One the samples are built, create `config.properties` by copying `apps/sparkpost-samples-app/config.properties.example` and filling in your SparkPost API key and other test parameters.
+
+You can now run your chosen sample through maven:
+
+```bash
+mvn exec:java -Dexec.mainClass=com.sparkpost.samples.SendEmailCCSample
+```
+

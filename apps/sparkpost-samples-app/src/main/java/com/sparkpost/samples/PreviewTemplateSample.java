@@ -21,6 +21,7 @@ import com.sparkpost.model.responses.TemplateCreateResponse;
 import com.sparkpost.model.responses.TemplatePreviewResponse;
 import com.sparkpost.resources.ResourceTemplates;
 import com.sparkpost.sdk.samples.helpers.SparkPostBaseApp;
+import com.sparkpost.transport.IRestConnection;
 import com.sparkpost.transport.RestConnection;
 
 /**
@@ -41,14 +42,14 @@ public class PreviewTemplateSample extends SparkPostBaseApp {
     }
 
     private void runApp() throws SparkPostException, IOException {
-        client = this.newConfiguredClient();
+        this.client = this.newConfiguredClient();
         String template = this.getTemplate("richContent.html");
         createTemplate(template, SAMPLE_TEMPLATE_NAME);
     }
 
     /**
      * Demonstrates how to store an email template in SparkPost
-     * 
+     *
      * @throws SparkPostException
      */
     public void createTemplate(String html, String name) throws SparkPostException {
@@ -61,11 +62,12 @@ public class PreviewTemplateSample extends SparkPostBaseApp {
         TemplateContentAttributes content = new TemplateContentAttributes();
 
         content.setSubject("Template Test");
-        content.setFrom(new AddressAttributes(client.getFromEmail(), "me", null));
+        content.setFrom(new AddressAttributes(this.client.getFromEmail(), "me", null));
         content.setHtml(html);
+        content.setText("Template Test Text");
         template.setContent(content);
 
-        RestConnection connection = new RestConnection(client, getEndPoint());
+        IRestConnection connection = new RestConnection(this.client, getEndPoint());
         try {
             TemplateCreateResponse response = ResourceTemplates.create(connection, template);
             String templateId = response.getResults().getId();
@@ -79,7 +81,7 @@ public class PreviewTemplateSample extends SparkPostBaseApp {
         }
     }
 
-    private void showTemplatePreview(String templateId, RestConnection connection) throws SparkPostException {
+    private void showTemplatePreview(String templateId, IRestConnection connection) throws SparkPostException {
         TemplateSubstitutionData substitutionData = new TemplateSubstitutionData();
 
         TemplatePreviewResponse response = ResourceTemplates.preview(connection, templateId, true, substitutionData);
@@ -87,7 +89,7 @@ public class PreviewTemplateSample extends SparkPostBaseApp {
         saveToFile(response.getResults().getHtml(), path);
 
         try {
-            openWebpage(new URI("file://" + path));
+            PreviewTemplateSample.openWebpage(new URI("file://" + path));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

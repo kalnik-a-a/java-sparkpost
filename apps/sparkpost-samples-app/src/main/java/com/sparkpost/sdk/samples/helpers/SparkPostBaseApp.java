@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 import com.sparkpost.Client;
 import com.sparkpost.exception.SparkPostException;
 import com.sparkpost.samples.CreateTemplateSimple;
-import com.sparkpost.transport.RestConnection;
+import com.sparkpost.transport.IRestConnection;
 
 public class SparkPostBaseApp {
 
@@ -39,11 +39,11 @@ public class SparkPostBaseApp {
 
     protected Client newConfiguredClient() throws SparkPostException, IOException {
 
-        Client client = new Client(properties.getProperty("SPARKPOST_API_KEY"));
+        Client client = new Client(this.properties.getProperty("SPARKPOST_API_KEY"));
         if (StringUtils.isEmpty(client.getAuthKey())) {
             throw new SparkPostException("SPARKPOST_API_KEY must be defined in " + CONFIG_FILE + ".");
         }
-        client.setFromEmail(properties.getProperty("SPARKPOST_SENDER_EMAIL"));
+        client.setFromEmail(this.properties.getProperty("SPARKPOST_SENDER_EMAIL"));
         if (StringUtils.isEmpty(client.getFromEmail())) {
             throw new SparkPostException("SPARKPOST_SENDER_EMAIL must be defined in " + CONFIG_FILE + ".");
         }
@@ -55,8 +55,12 @@ public class SparkPostBaseApp {
         return client;
     }
 
+    protected String getProperty(String name, String defaultValue) {
+        return this.properties.getProperty(name, defaultValue);
+    }
+
     public String getEndPoint() {
-        String endpoint = this.properties.getProperty("SPARKPOST_BASE_URL", RestConnection.defaultApiEndpoint);
+        String endpoint = this.properties.getProperty("SPARKPOST_BASE_URL", IRestConnection.defaultApiEndpoint);
 
         return endpoint;
     }
@@ -67,7 +71,7 @@ public class SparkPostBaseApp {
     private void loadProperties() {
         try (InputStream inputStream = new FileInputStream(CONFIG_FILE);) {
 
-            properties.load(inputStream);
+            this.properties.load(inputStream);
 
         } catch (IOException e) {
             logger.error("Unable to locate configuration file \"" + CONFIG_FILE + "\". Make sure it is in your classpath.");
@@ -75,7 +79,7 @@ public class SparkPostBaseApp {
     }
 
     public String getFromAddress() {
-        String fromAddress = properties.getProperty("SPARKPOST_FROM");
+        String fromAddress = this.properties.getProperty("SPARKPOST_FROM");
 
         if (StringUtils.isEmpty(fromAddress)) {
             throw new IllegalStateException("This sample requires you to fill in `SPARKPOST_FROM` in config.properties.");
@@ -99,18 +103,55 @@ public class SparkPostBaseApp {
         return null;
     }
 
-    public String[] getTestRecipients() {
-        String recipListString = properties.getProperty("SPARKPOST_RECIPIENTS", null);
-        if (StringUtils.isAnyEmpty(recipListString)) {
-            throw new IllegalStateException("This sample requires you to fill in `SPARKPOST_RECIPIENTS` in config.properties.");
+    public final static String loadJsonFile(String name) {
+
+        try {
+
+            String jsonContent = FileUtils.readFileToString(new File("samples/" + name), "UTF-8");
+            return jsonContent;
+
+        } catch (IOException e) {
+            System.err.println("Failed to load json file. " + e.getMessage());
+            System.exit(-1);
         }
 
-        String[] results = recipListString.split(",");
-        return results;
+        return null;
+    }
+
+    public String[] getTestRecipients() {
+        return getRecipientListProperty("SPARKPOST_RECIPIENTS");
     }
 
     public List<String> getTestRecipientsAsList() {
         return Arrays.asList(getTestRecipients());
     }
 
+    public String[] getCCRecipients() {
+        return getRecipientListProperty("SPARKPOST_CC_RECIPIENTS");
+    }
+
+    public String[] getBCCRecipients() {
+        return getRecipientListProperty("SPARKPOST_BCC_RECIPIENTS");
+    }
+
+    public String stringArrayToCSV(String[] lst) {
+        StringBuilder result = new StringBuilder();
+        for (int idx = 0; idx < lst.length; ++idx) {
+            result.append(lst[idx]);
+            if (idx < lst.length - 1) {
+                result.append(",");
+            }
+        }
+        return result.toString();
+    }
+
+    private String[] getRecipientListProperty(String propName) {
+        String recipListString = getProperty(propName, null);
+        if (StringUtils.isAnyEmpty(recipListString)) {
+            throw new IllegalStateException("This sample requires you to fill in `" + propName + "` in config.properties.");
+        }
+
+        String[] results = recipListString.split(",");
+        return results;
+    }
 }
